@@ -33,6 +33,7 @@ import android.text.Spannable;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Base64;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -141,6 +142,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
     private int contactsReimportRow;
     private int contactsSortRow;
     private int rowCount;
+    // for spa
+    private int spaSetting;
+    private int spaSetting2;
+    private int spaSettingsRow;
 
     private final static int edit_name = 1;
     private final static int logout = 2;
@@ -229,6 +234,9 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
         backgroundRow = rowCount++;
         languageRow = rowCount++;
         enableAnimationsRow = rowCount++;
+        spaSetting = rowCount++;
+        spaSetting2 = rowCount++;
+        spaSettingsRow = rowCount++;
         mediaDownloadSection = rowCount++;
         mediaDownloadSection2 = rowCount++;
         mobileDownloadRow = rowCount++;
@@ -468,6 +476,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                         ((TextCheckCell) view).setChecked(MediaController.getInstance().canSaveToGallery());
                     }
                 } else if (i == privacyRow) {
+                    // Log.v("SPA", "arrive privacy row");
                     presentFragment(new PrivacySettingsActivity());
                 } else if (i == languageRow) {
                     presentFragment(new LanguageSelectActivity());
@@ -594,6 +603,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     presentFragment(new ChangePhoneHelpActivity());
                 } else if (i == stickersRow) {
                     presentFragment(new StickersActivity());
+                } else if (i == spaSettingsRow) {
+                    presentFragment(new SPASettingsActivity());
                 }
             }
         });
@@ -1068,7 +1079,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     i == askQuestionRow || i == sendLogsRow || i == sendByEnterRow || i == privacyRow || i == wifiDownloadRow ||
                     i == mobileDownloadRow || i == clearLogsRow || i == roamingDownloadRow || i == languageRow || i == usernameRow ||
                     i == switchBackendButtonRow || i == telegramFaqRow || i == contactsSortRow || i == contactsReimportRow || i == saveToGalleryRow ||
-                    i == stickersRow;
+                    i == stickersRow || i == spaSettingsRow;
         }
 
         @Override
@@ -1150,6 +1161,8 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     textCell.setText(LocaleController.getString("ImportContacts", R.string.ImportContacts), true);
                 } else if (i == stickersRow) {
                     textCell.setText(LocaleController.getString("Stickers", R.string.Stickers), true);
+                } else if (i == spaSettingsRow) {
+                    textCell.setText(LocaleController.getString("SPASettingsRow", R.string.SPASettingsRow), true);
                 }
             } else if (type == 3) {
                 if (view == null) {
@@ -1179,7 +1192,10 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                     ((HeaderCell) view).setText(LocaleController.getString("AutomaticMediaDownload", R.string.AutomaticMediaDownload));
                 } else if (i == numberSectionRow) {
                     ((HeaderCell) view).setText(LocaleController.getString("Info", R.string.Info));
+                } else if (i == spaSetting2) {
+                    ((HeaderCell) view).setText(LocaleController.getString("SPA", R.string.SPASettings));
                 }
+
             } else if (type == 5) {
                 if (view == null) {
                     view = new TextInfoCell(mContext);
@@ -1264,7 +1280,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
             if (i == emptyRow || i == overscrollRow) {
                 return 0;
             }
-            if (i == settingsSectionRow || i == supportSectionRow || i == messagesSectionRow || i == mediaDownloadSection || i == contactsSectionRow) {
+            if (i == settingsSectionRow || i == supportSectionRow || i == messagesSectionRow || i == mediaDownloadSection || i == contactsSectionRow || i == spaSetting) {
                 return 1;
             } else if (i == enableAnimationsRow || i == sendByEnterRow || i == saveToGalleryRow) {
                 return 3;
@@ -1274,7 +1290,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
                 return 5;
             } else if (i == wifiDownloadRow || i == mobileDownloadRow || i == roamingDownloadRow || i == numberRow || i == usernameRow) {
                 return 6;
-            } else if (i == settingsSectionRow2 || i == messagesSectionRow2 || i == supportSectionRow2 || i == numberSectionRow || i == mediaDownloadSection2) {
+            } else if (i == settingsSectionRow2 || i == messagesSectionRow2 || i == supportSectionRow2 || i == numberSectionRow || i == mediaDownloadSection2 || i == spaSetting2) {
                 return 4;
             } else {
                 return 2;

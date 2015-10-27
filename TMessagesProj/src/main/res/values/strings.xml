@@ -465,6 +465,19 @@
     <string name="SmartNotificationsTimes">times</string>
     <string name="SmartNotificationsWithin">within</string>
     <string name="SmartNotificationsMinutes">minutes</string>
+    <!--spa view-->
+    <string name="SPASettings">SPA</string>
+    <string name="SPASettingsRow">SPA Settings</string>
+    <string name="SPASendingHelp">Choose friends who you want to send SPA requests and you can give each person a weight value instead the default weight according to them knowledge about policy administration.</string>
+    <string name="SPAResultHelp">Show the state of SPA process. When receive SPA result, you can apply the result manually or allow SPA apply the result automatically.</string>
+    <string name="SPARequestTitle">SPA Request</string>
+    <string name="SPAResultTitle">SPA Result</string>
+    <string name="SPASelectItems">Select SPA Items</string>
+    <string name="SPAFriendsList">Friends List</string>
+    <string name="SPASendRequest">Send SPA Requests</string>
+    <string name="SPAResult">SPA Result</string>
+    <string name="SPAPrivacyDetailHelp">Choose privacy settings being proposed by SPA.</string>
+    <string name="SPASecurityDetailHelp">Choose security settings being proposed by SPA.</string>
     <!--sessions view-->
     <string name="SessionsTitle">Active Sessions</string>
     <string name="CurrentSession">Current session</string>
