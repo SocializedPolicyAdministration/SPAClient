@@ -478,6 +478,9 @@
     <string name="SPAResult">SPA Result</string>
     <string name="SPAPrivacyDetailHelp">Choose privacy settings being proposed by SPA.</string>
     <string name="SPASecurityDetailHelp">Choose security settings being proposed by SPA.</string>
+    <string name="CancelUserText">Tap and hold on user to deselect.</string>
+    <string name="NoSelected">No Selected User yet</string>
+    <string name="Deselect">Deselect</string>
     <!--sessions view-->
     <string name="SessionsTitle">Active Sessions</string>
     <string name="CurrentSession">Current session</string>

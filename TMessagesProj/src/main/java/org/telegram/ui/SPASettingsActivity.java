@@ -1,18 +1,26 @@
 package org.telegram.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import org.telegram.messenger.ContactsController;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SPAConfig;
+import org.telegram.messenger.volley.Request;
+import org.telegram.messenger.volley.RequestQueue;
+import org.telegram.messenger.volley.Response;
+import org.telegram.messenger.volley.VolleyError;
+import org.telegram.messenger.volley.toolbox.StringRequest;
+import org.telegram.messenger.volley.toolbox.Volley;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
@@ -54,6 +62,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
         spaResultRow2 = rowCount++;
         spaResultDetailRow = rowCount++;
 
+
         NotificationCenter.getInstance().addObserver(this, NotificationCenter.spaSettings);
 
         return true;
@@ -67,6 +76,28 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
     @Override
     public View createView(Context context) {
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
+        if (!preferences.contains("private_key")) {
+            RequestQueue queue = Volley.newRequestQueue(context);
+            String url = SPAConfig.keyManager;
+            // Request a string response from the provided URL.
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            // Display the first 500 characters of the response string.
+                            Log.v("SPA", "Response is: "+ response.substring(0,500));
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.v("SPA", "That didn't work!");
+                }
+            });
+// Add the request to the RequestQueue.
+            queue.add(stringRequest);
+        }
+
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("SPASettings", R.string.SPASettings));
@@ -98,9 +129,10 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                if (i == selectPrivacyItemsRow)  {
                    Log.v("SPA", "select privacy items");
-                   presentFragment(new SelectPrivacyItems());
+                   presentFragment(new SelectPrivacyItemsActivity());
                } else if (i == friendsListRow) {
                    Log.v("SPA", "friends list");
+                   presentFragment(new FriendListActivity());
                } else if (i == sendSpaRequstRow) {
                    Log.v("SPA", "send spa request");
                } else if (i == spaResultRow2) {

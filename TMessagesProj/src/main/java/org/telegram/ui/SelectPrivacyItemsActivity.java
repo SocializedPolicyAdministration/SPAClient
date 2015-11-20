@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -27,7 +28,7 @@ import org.telegram.ui.Components.LayoutHelper;
 /**
  * Created by zqguo on 2015/10/27.
  */
-public class SelectPrivacyItems extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class SelectPrivacyItemsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private ListAdapter listAdapter;
 
     private int privacySectionRow;
@@ -65,7 +66,7 @@ public class SelectPrivacyItems extends BaseFragment implements NotificationCent
     public View createView(Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
-        actionBar.setTitle(LocaleController.getString("SPASettings", R.string.SPASettings));
+        actionBar.setTitle(LocaleController.getString("SPASelectItems", R.string.SPASelectItems));
         actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
             @Override
             public void onItemClick(int id) {
@@ -86,14 +87,15 @@ public class SelectPrivacyItems extends BaseFragment implements NotificationCent
         listView.setDividerHeight(0);
         listView.setVerticalScrollBarEnabled(false);
         listView.setDrawSelectorOnTop(true);
-        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        //frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
         listView.setAdapter(listAdapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                 if (i == lastSeenRow)  {
-                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
                     boolean last_seen_setting = preferences.getBoolean("last_seen_setting", false);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean("last_seen_setting", !last_seen_setting);
@@ -102,7 +104,7 @@ public class SelectPrivacyItems extends BaseFragment implements NotificationCent
                         ((TextCheckCell) view).setChecked(!last_seen_setting);
                     }
                 } else if (i == passcodeLock) {
-                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
                     boolean passcode_setting = preferences.getBoolean("passcode_setting", false);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean("passcode_setting", !passcode_setting);
@@ -177,9 +179,10 @@ public class SelectPrivacyItems extends BaseFragment implements NotificationCent
             if (type == 0) {
                 if (view == null) {
                     view = new TextCheckCell(mContext);
+                    view.setBackgroundColor(0xffffffff);
                 }
                 TextCheckCell textCell = (TextCheckCell) view;
-                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("mainconfig", Activity.MODE_PRIVATE);
+                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
                 if (i == lastSeenRow) {
                     textCell.setTextAndCheck(LocaleController.getString("PrivacyLastSeen", R.string.PrivacyLastSeen), preferences.getBoolean("last_seen_setting", false), false);
                 } else if (i == passcodeLock) {

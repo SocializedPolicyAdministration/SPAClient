@@ -163,6 +163,9 @@ public class MessagesStorage {
                 database.executeFast("CREATE TABLE keyvalue(id TEXT PRIMARY KEY, value TEXT)").stepThis().dispose();
                 database.executeFast("CREATE TABLE bot_info(uid INTEGER PRIMARY KEY, info BLOB)").stepThis().dispose();
 
+                // SPA
+                database.executeFast("CREATE TABLE spa_user_with_weight(uid INTEGER PRIMARY KEY, weight INTEGER DEFAULT 5)").stepThis().dispose();
+
                 //version
                 database.executeFast("PRAGMA user_version = 23").stepThis().dispose();
 
