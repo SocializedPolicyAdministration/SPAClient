@@ -15,6 +15,7 @@ import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SPAConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.volley.Request;
 import org.telegram.messenger.volley.RequestQueue;
 import org.telegram.messenger.volley.Response;
@@ -28,6 +29,9 @@ import org.telegram.ui.Cells.HeaderCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by zqguo on 2015/10/26.
@@ -81,20 +85,26 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
             RequestQueue queue = Volley.newRequestQueue(context);
             String url = SPAConfig.keyManager;
             // Request a string response from the provided URL.
-            StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
                             // Display the first 500 characters of the response string.
-                            Log.v("SPA", "Response is: "+ response.substring(0,500));
+                            Log.v("SPA", "Response is: "+ response);
                         }
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.v("SPA", "That didn't work!");
                 }
-            });
-// Add the request to the RequestQueue.
+            }) {
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("id", UserConfig.getCurrentUser().phone);
+                    return params;
+                }
+            };
+            // Add the request to the RequestQueue.
             queue.add(stringRequest);
         }
 
