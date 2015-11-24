@@ -80,8 +80,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
     @Override
     public View createView(Context context) {
-        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
-        if (!preferences.contains("private_key")) {
+        final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+        if (!preferences.contains("paillier_n")) {
             RequestQueue queue = Volley.newRequestQueue(context);
             String url = SPAConfig.keyManager;
             // Request a string response from the provided URL.
@@ -89,8 +89,16 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            // Display the first 500 characters of the response string.
-                            Log.v("SPA", "Response is: "+ response);
+                            if (response.charAt(0) != '0' && response.charAt(0) != '1') {
+                            } else {
+                                String keys[] = response.split(" ");
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.putString("paillier_lambda", keys[0]);
+                                editor.putString("paillier_mu", keys[1]);
+                                editor.putString("g", keys[2]);
+                                editor.putString("n", keys[3]);
+                                editor.putString("ope_key", keys[4]);
+                            }
                         }
                     }, new Response.ErrorListener() {
                 @Override
