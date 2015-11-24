@@ -183,7 +183,13 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".WearReplyReceiver" android:enabled="true"/>
+        <receiver android:name=".WearReplyReceiver" android:enabled="true" />
+
+        <service android:name=".SPAPollingService">
+            <intent-filter>
+                <action android:name="org.telegram.android.spa.Key_Manager" />
+            </intent-filter>
+        </service>
 
         <uses-library android:name="com.sec.android.app.multiwindow" android:required="false" />
         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />

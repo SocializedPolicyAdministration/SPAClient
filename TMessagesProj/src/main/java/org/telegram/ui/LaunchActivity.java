@@ -49,6 +49,8 @@ import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NativeCrashManager;
+import org.telegram.messenger.SPAPollingService;
+import org.telegram.messenger.SPAPollingUtils;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.query.StickersQuery;
@@ -461,6 +463,8 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         /*if (BuildVars.DEBUG_VERSION) {
             ViewServer.get(this).addWindow(this);
         }*/
+
+        SPAPollingUtils.startPollingService(this, 5, SPAPollingService.class, SPAPollingService.ACTION);
 
         handleIntent(getIntent(), false, savedInstanceState != null, false);
         needLayout();
@@ -1478,6 +1482,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         } catch (Exception e) {
             FileLog.e("tmessages", e);
         }
+        SPAPollingUtils.stopPollingService(this, SPAPollingService.class, SPAPollingService.ACTION);
         super.onDestroy();
         onFinish();
     }
