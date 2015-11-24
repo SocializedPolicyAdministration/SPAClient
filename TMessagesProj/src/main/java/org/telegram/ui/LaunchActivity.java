@@ -49,7 +49,7 @@ import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.MessagesStorage;
 import org.telegram.messenger.NativeCrashManager;
-import org.telegram.messenger.SPAPollingService;
+import org.telegram.messenger.SPAKeyManagePollingService;
 import org.telegram.messenger.SPAPollingUtils;
 import org.telegram.messenger.SendMessagesHelper;
 import org.telegram.messenger.UserObject;
@@ -464,7 +464,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
             ViewServer.get(this).addWindow(this);
         }*/
 
-        SPAPollingUtils.startPollingService(this, 5, SPAPollingService.class, SPAPollingService.ACTION);
+        SPAPollingUtils.startPollingService(this, 5, SPAKeyManagePollingService.class, SPAKeyManagePollingService.ACTION);
 
         handleIntent(getIntent(), false, savedInstanceState != null, false);
         needLayout();
@@ -1482,7 +1482,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
         } catch (Exception e) {
             FileLog.e("tmessages", e);
         }
-        SPAPollingUtils.stopPollingService(this, SPAPollingService.class, SPAPollingService.ACTION);
+        SPAPollingUtils.stopPollingService(this, SPAKeyManagePollingService.class, SPAKeyManagePollingService.ACTION);
         super.onDestroy();
         onFinish();
     }

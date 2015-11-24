@@ -1,8 +1,10 @@
 package org.telegram.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,32 +14,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.telegram.PhoneFormat.PhoneFormat;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SPAConfig;
+import org.telegram.messenger.volley.Request;
+import org.telegram.messenger.volley.RequestQueue;
+import org.telegram.messenger.volley.Response;
+import org.telegram.messenger.volley.VolleyError;
+import org.telegram.messenger.volley.toolbox.StringRequest;
+import org.telegram.messenger.volley.toolbox.Volley;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Cells.TextInfoCell;
+import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Components.LayoutHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Created by zqguo on 2015/10/28.
  */
-public class FriendListActivity extends BaseFragment implements ContactsActivity.ContactsActivityDelegate {
+public class SPAFriendListActivity extends BaseFragment implements ContactsActivity.ContactsActivityDelegate {
 
     private ListView listView;
     private ListAdapter listViewAdapter;
@@ -45,6 +57,11 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
     private FrameLayout progressView;
     private int selectedUserId;
     private ArrayList<Integer> usersId = new ArrayList<>();
+
+    // in order to get users' phone number for `sendSPARequest`
+    private ArrayList<String[]> usersPhoneAndWeight = new ArrayList<>();
+
+    private final int leastNumberForSendSPARequest = 3;
 
     private final static int invite_friends = 1;
 
@@ -59,7 +76,7 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
     }
 
     @Override
-    public View createView(Context context) {
+    public View createView(final Context context) {
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString("SPAFriendsList", R.string.SPAFriendsList));
@@ -74,7 +91,7 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
                     args.putBoolean("destroyAfterSelect", true);
                     args.putBoolean("returnAsResult", true);
                     ContactsActivity fragment = new ContactsActivity(args);
-                    fragment.setDelegate(FriendListActivity.this);
+                    fragment.setDelegate(SPAFriendListActivity.this);
                     presentFragment(fragment);
                 }
             }
@@ -120,10 +137,26 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (i < usersId.size()) {
+                int usersSize = usersId.size();
+                if (i < usersSize) {
                     Bundle args = new Bundle();
                     args.putInt("user_id", usersId.get(i));
                     presentFragment(new ProfileActivity(args));
+                } else if (i == usersSize) {
+                    // pass
+                } else if (i > usersSize) {
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean containsLastSeen = preferences.contains("last_seen_setting");
+                    boolean containsPasscodeLock = preferences.contains("passcode_lock_setting");
+                    if (usersSize >= leastNumberForSendSPARequest) {
+                        if (sendSPARequest(containsLastSeen, containsPasscodeLock, context)) {
+                            // TODO: 15-11-25 Toast success
+                        } else {
+                            // TODO: 15-11-25 Toast fail
+                        }
+                    } else {
+                        // TODO: 15-11-25 Toast no setting be chosen to send request
+                    }
                 }
             }
         });
@@ -166,6 +199,56 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
         return fragmentView;
     }
 
+    private boolean sendSPARequest(boolean containsLastSeen, boolean containsPasscodeLock, Context context) {
+        // generate json request
+        RequestQueue queue = Volley.newRequestQueue(context);
+        final String sendContent;
+        JSONArray settings = new JSONArray();
+        if (containsLastSeen) {
+            if (containsPasscodeLock) {
+                settings.put("last_seen_setting");
+                settings.put("passcode_lock_setting");
+            } else {
+                settings.put("last_seen_setting");
+            }
+        } else {
+            if (containsPasscodeLock) {
+                settings.put("passcode_lock_setting");
+            } else {
+                // cannot arrive here, guard by caller
+            }
+        }
+        JSONArray persons = new JSONArray(usersPhoneAndWeight);
+        sendContent = "[settings:" + settings.toString() + ",persons:" + persons.toString() + "]";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.POST,
+                SPAConfig.sendSPARequest,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.compareTo("ok") == 0) {
+                            // TODO: 15-11-25 Toast for success
+                        } else {
+                            // TODO: 15-11-25 Toast for failure
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.v("SPA", "SPA friend list activity cannot connect keymanager!");
+                    }
+                }) {
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("content", sendContent);
+                return params;
+            }
+        };
+        queue.add(stringRequest);
+        return false;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -196,7 +279,11 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
 
         @Override
         public boolean isEnabled(int i) {
-            return i != usersId.size();
+            if (i == usersId.size()) {
+                return false;
+            } else {
+                return true;
+            }
         }
 
         @Override
@@ -204,7 +291,7 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
             if (usersId.isEmpty()) {
                 return 0;
             }
-            return usersId.size() + 1;
+            return usersId.size() + 2;
         }
 
         @Override
@@ -231,6 +318,7 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
                 }
                 TLRPC.User user = MessagesController.getInstance().getUser(usersId.get(i));
                 if (user != null) {
+                    usersPhoneAndWeight.add(new String[]{user.phone, "1"});
                     ((UserCell) view).setData(user, null, user.phone != null && user.phone.length() != 0 ? PhoneFormat.getInstance().format("+" + user.phone) : LocaleController.getString("NumberUnknown", R.string.NumberUnknown), 0);
                 }
             } else if (type == 1) {
@@ -238,16 +326,27 @@ public class FriendListActivity extends BaseFragment implements ContactsActivity
                     view = new TextInfoCell(mContext);
                     ((TextInfoCell) view).setText(LocaleController.getString("CancelUserText", R.string.CancelUserText));
                 }
+            } else if (type == 2) {
+                if (view == null) {
+                    view = new TextSettingsCell(mContext);
+                    view.setBackgroundColor(0xffffffff);
+                    TextSettingsCell textCell = (TextSettingsCell) view;
+                    textCell.setText(LocaleController.getString("SPASendRequest", R.string.SPASendRequest), true);
+                }
             }
             return view;
         }
 
         @Override
         public int getItemViewType(int i) {
-            if(i == usersId.size()) {
+            int usersSize = usersId.size();
+            if(i < usersSize) {
+                return 0;
+            } else if (i == usersSize) {
                 return 1;
+            } else {
+                return 2;
             }
-            return 0;
         }
 
         @Override

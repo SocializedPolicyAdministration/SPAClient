@@ -83,7 +83,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
         final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
         if (!preferences.contains("paillier_n")) {
             RequestQueue queue = Volley.newRequestQueue(context);
-            String url = SPAConfig.keyManager;
+            String url = SPAConfig.addKeys;
             // Request a string response from the provided URL.
             StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
                     new Response.Listener<String>() {
@@ -103,7 +103,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.v("SPA", "That didn't work!");
+                    Log.v("SPA", "SPA Setting cannot connect keymanager!");
                 }
             }) {
                 protected Map<String, String> getParams() {
@@ -147,10 +147,10 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                if (i == selectPrivacyItemsRow)  {
                    Log.v("SPA", "select privacy items");
-                   presentFragment(new SelectPrivacyItemsActivity());
+                   presentFragment(new SPASelectPrivacyItemsActivity());
                } else if (i == friendsListRow) {
                    Log.v("SPA", "friends list");
-                   presentFragment(new FriendListActivity());
+                   presentFragment(new SPAFriendListActivity());
                } else if (i == sendSpaRequstRow) {
                    Log.v("SPA", "send spa request");
                } else if (i == spaResultRow2) {

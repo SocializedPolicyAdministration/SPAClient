@@ -16,6 +16,7 @@ import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
+import org.telegram.messenger.SPAConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
@@ -28,7 +29,7 @@ import org.telegram.ui.Components.LayoutHelper;
 /**
  * Created by zqguo on 2015/10/27.
  */
-public class SelectPrivacyItemsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
+public class SPASelectPrivacyItemsActivity extends BaseFragment implements NotificationCenter.NotificationCenterDelegate {
     private ListAdapter listAdapter;
 
     private int privacySectionRow;
@@ -95,7 +96,7 @@ public class SelectPrivacyItemsActivity extends BaseFragment implements Notifica
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
                 if (i == lastSeenRow)  {
-                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                     boolean last_seen_setting = preferences.getBoolean("last_seen_setting", false);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putBoolean("last_seen_setting", !last_seen_setting);
@@ -104,10 +105,10 @@ public class SelectPrivacyItemsActivity extends BaseFragment implements Notifica
                         ((TextCheckCell) view).setChecked(!last_seen_setting);
                     }
                 } else if (i == passcodeLock) {
-                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
-                    boolean passcode_setting = preferences.getBoolean("passcode_setting", false);
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean passcode_setting = preferences.getBoolean("passcode_lock_setting", false);
                     SharedPreferences.Editor editor = preferences.edit();
-                    editor.putBoolean("passcode_setting", !passcode_setting);
+                    editor.putBoolean("passcode_lock_setting", !passcode_setting);
                     editor.commit();
                     if (view instanceof TextCheckCell) {
                         ((TextCheckCell) view).setChecked(!passcode_setting);

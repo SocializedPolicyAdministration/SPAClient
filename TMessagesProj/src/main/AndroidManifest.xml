@@ -185,7 +185,7 @@
 
         <receiver android:name=".WearReplyReceiver" android:enabled="true" />
 
-        <service android:name=".SPAPollingService">
+        <service android:name=".SPAKeyManagePollingService">
             <intent-filter>
                 <action android:name="org.telegram.android.spa.Key_Manager" />
             </intent-filter>
