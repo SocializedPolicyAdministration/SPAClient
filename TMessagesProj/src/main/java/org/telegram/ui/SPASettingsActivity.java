@@ -80,8 +80,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
     @Override
     public View createView(Context context) {
-        final SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-        if (!preferences.contains("paillier_n")) {
+        SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+        if (!preferences.contains("paillier_lambda")) {
             RequestQueue queue = Volley.newRequestQueue(context);
             String url = SPAConfig.addKeys;
             // Request a string response from the provided URL.
@@ -89,15 +89,18 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
+                            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                             if (response.charAt(0) != '0' && response.charAt(0) != '1') {
+                                Log.v("SPA", response);
                             } else {
                                 String keys[] = response.split(" ");
                                 SharedPreferences.Editor editor = preferences.edit();
                                 editor.putString("paillier_lambda", keys[0]);
                                 editor.putString("paillier_mu", keys[1]);
-                                editor.putString("g", keys[2]);
-                                editor.putString("n", keys[3]);
+                                editor.putString("paillier_g", keys[2]);
+                                editor.putString("paillier_n", keys[3]);
                                 editor.putString("ope_key", keys[4]);
+                                editor.commit();
                             }
                         }
                     }, new Response.ErrorListener() {
@@ -145,19 +148,20 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
-               if (i == selectPrivacyItemsRow)  {
-                   Log.v("SPA", "select privacy items");
-                   presentFragment(new SPASelectPrivacyItemsActivity());
-               } else if (i == friendsListRow) {
-                   Log.v("SPA", "friends list");
-                   presentFragment(new SPAFriendListActivity());
-               } else if (i == sendSpaRequstRow) {
-                   Log.v("SPA", "send spa request");
-               } else if (i == spaResultRow2) {
-                   Log.v("SPA", "spa result");
-               }
+                if (i == selectPrivacyItemsRow) {
+                    Log.v("SPA", "select privacy items");
+                    presentFragment(new SPASelectPrivacyItemsActivity());
+                } else if (i == friendsListRow) {
+                    Log.v("SPA", "friends list");
+                    presentFragment(new SPAFriendListActivity());
+                } else if (i == sendSpaRequstRow) {
+                    Log.v("SPA", "send spa request");
+                } else if (i == spaResultRow2) {
+                    Log.v("SPA", "spa result");
+                }
             }
         });
+
 
         return fragmentView;
     }

@@ -1,7 +1,9 @@
 package org.telegram.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Gravity;
@@ -26,6 +28,8 @@ import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
 
+import java.util.prefs.PreferenceChangeEvent;
+
 /**
  * Created by zqguo on 2015/10/27.
  */
@@ -39,6 +43,9 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
     private int passcodeLock;
     private int securityDetailRow;
     private int rowCount;
+
+    private final int LAST_SEEN = 0;
+    private final int PASSCODE_LOCK = 1;
 
     @Override
     public boolean onFragmentCreate() {
@@ -95,7 +102,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                if (i == lastSeenRow)  {
+                if (i == lastSeenRow) {
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                     boolean last_seen_setting = preferences.getBoolean("last_seen_setting", false);
                     SharedPreferences.Editor editor = preferences.edit();
@@ -116,6 +123,54 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                 }
             }
         });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (i == lastSeenRow || i == passcodeLock) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+
+                    CharSequence[] items = new CharSequence[]{
+                            LocaleController.getString("MajorityPreferred", R.string.MajorityPreferred),
+                            LocaleController.getString("MinorityPreferred", R.string.MinorityPreferred),
+                            LocaleController.getString("MaximumValue", R.string.MaximumValue),
+                            LocaleController.getString("MinimumValue", R.string.MinimumValue),
+                            LocaleController.getString("Average", R.string.Average)
+                    };
+                    final int selectItem = i;
+                    builder.setItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+                            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            String selectOne;
+                            if (selectItem == 0) {
+                                selectOne = "LAST_SEEN";
+                            } else {
+                                selectOne = "PASSCODE_LOCK";
+                            }
+                            if (j == 0) {
+                                editor.putString(selectOne, "MajorityPreferred");
+                            } else if (j == 1) {
+                                editor.putString(selectOne, "MinorityPreferred");
+                            } else if (j == 2) {
+                                editor.putString(selectOne, "MaximumValue");
+                            } else if (j == 3) {
+                                editor.putString(selectOne, "MinimumValue");
+                            } else if (j == 4) {
+                                editor.putString(selectOne, "Average");
+                            }
+                        }
+                    });
+                    showDialog(builder.create());
+                } else {
+                    // pass
+                }
+
+                return true;
+            }
+        });
+
 
         return fragmentView;
     }

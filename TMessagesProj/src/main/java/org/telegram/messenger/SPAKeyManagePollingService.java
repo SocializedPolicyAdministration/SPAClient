@@ -12,6 +12,10 @@ import org.telegram.messenger.volley.Response;
 import org.telegram.messenger.volley.VolleyError;
 import org.telegram.messenger.volley.toolbox.StringRequest;
 import org.telegram.messenger.volley.toolbox.Volley;
+import org.telegram.tgnet.TLRPC;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by gzq on 15-11-24.
@@ -53,10 +57,22 @@ public class SPAKeyManagePollingService extends Service {
                 public void onErrorResponse(VolleyError error) {
                     Log.v("SPA", "SPAKeyManagePollingService didn't work!");
                 }
-            });
+            }) {
+                protected Map<String, String> getParams() {
+                    TLRPC.User user = UserConfig.getCurrentUser();
+                    String value;
+                    if (user != null && user.phone != null && user.phone.length() != 0) {
+                        value = user.phone;
+                    } else {
+                        value = LocaleController.getString("NumberUnknown", R.string.NumberUnknown);
+                    }
+                    Map<String, String> params = new HashMap<>();
+                    params.put("id", value);
+                    return params;
+                }
+            };
             // Add the request to the RequestQueue.
             queue.add(stringRequest);
-            Log.v("SPA", "Test Polling");
         }
     }
 

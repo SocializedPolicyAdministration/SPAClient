@@ -481,6 +481,11 @@
     <string name="CancelUserText">Tap and hold on user to deselect.</string>
     <string name="NoSelected">No Selected User yet</string>
     <string name="Deselect">Deselect</string>
+    <string name="MajorityPreferred">Majority preferred</string>
+    <string name="MinorityPreferred">Minority Preferred</string>
+    <string name="MaximumValue">Maximum Value</string>
+    <string name="MinimumValue">Minimum value</string>
+    <string name="Average">Average</string>
     <!--sessions view-->
     <string name="SessionsTitle">Active Sessions</string>
     <string name="CurrentSession">Current session</string>

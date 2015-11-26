@@ -50,13 +50,27 @@ import java.util.Map;
  * Created by zqguo on 2015/10/28.
  */
 public class SPAFriendListActivity extends BaseFragment implements ContactsActivity.ContactsActivityDelegate {
+    private class SPAUser {
+        int userId;
+        int weight;
+        SPAUser(int userId, int weight) {
+            if (weight != UNPROFESSIONAL_USER || weight != PROFESSIONAL_USER) {
+                weight = UNPROFESSIONAL_USER;
+            }
+            this.userId = userId;
+            this.weight = weight;
+        }
+    }
+
+    private final int UNPROFESSIONAL_USER = 1;
+    private final int PROFESSIONAL_USER = 2;
 
     private ListView listView;
     private ListAdapter listViewAdapter;
     private TextView emptyTextView;
     private FrameLayout progressView;
     private int selectedUserId;
-    private ArrayList<Integer> usersId = new ArrayList<>();
+    private ArrayList<SPAUser> usersId = new ArrayList<>();
 
     // in order to get users' phone number for `sendSPARequest`
     private ArrayList<String[]> usersPhoneAndWeight = new ArrayList<>();
@@ -140,7 +154,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                 int usersSize = usersId.size();
                 if (i < usersSize) {
                     Bundle args = new Bundle();
-                    args.putInt("user_id", usersId.get(i));
+                    args.putInt("user_id", usersId.get(i).userId);
                     presentFragment(new ProfileActivity(args));
                 } else if (i == usersSize) {
                     // pass
@@ -167,15 +181,19 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                 if (i < 0 || i >= usersId.size() || getParentActivity() == null) {
                     return true;
                 }
-                selectedUserId = usersId.get(i);
+                selectedUserId = usersId.get(i).userId;
                 final int selectedItem = i;
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                CharSequence[] items = new CharSequence[]{LocaleController.getString("Deselect", R.string.Deselect)};
+                CharSequence[] items = new CharSequence[]{"UnProfessional user", "Professional user", LocaleController.getString("Deselect", R.string.Deselect)};
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (i == 0) {
+                            usersId.get(selectedItem).weight = 1;
+                        } else if (i == 1) {
+                            usersId.get(selectedItem).weight = 2;
+                        } else if (i == 2) {
                             usersId.remove(selectedItem);
                             listViewAdapter.notifyDataSetChanged();
                         }
@@ -262,7 +280,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
         if (user == null) {
             return;
         }
-        usersId.add(user.id);
+        usersId.add(new SPAUser(user.id, UNPROFESSIONAL_USER));
     }
 
     private class ListAdapter extends BaseFragmentAdapter {
@@ -316,7 +334,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                 if (view == null) {
                     view = new UserCell(mContext, 1);
                 }
-                TLRPC.User user = MessagesController.getInstance().getUser(usersId.get(i));
+                TLRPC.User user = MessagesController.getInstance().getUser(usersId.get(i).userId);
                 if (user != null) {
                     usersPhoneAndWeight.add(new String[]{user.phone, "1"});
                     ((UserCell) view).setData(user, null, user.phone != null && user.phone.length() != 0 ? PhoneFormat.getInstance().format("+" + user.phone) : LocaleController.getString("NumberUnknown", R.string.NumberUnknown), 0);
