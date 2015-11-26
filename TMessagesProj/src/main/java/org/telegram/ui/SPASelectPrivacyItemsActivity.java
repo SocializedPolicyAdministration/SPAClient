@@ -160,6 +160,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                             } else if (j == 4) {
                                 editor.putString(selectOne, "Average");
                             }
+                            editor.commit();
                         }
                     });
                     showDialog(builder.create());
