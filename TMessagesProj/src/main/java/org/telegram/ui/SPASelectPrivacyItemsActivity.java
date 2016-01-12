@@ -43,6 +43,10 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
     private int passcodeLock;
     private int securityDetailRow;
     private int rowCount;
+    private int testSectionRow;
+    private int average;
+    private int minMax;
+    private int testDetailedRow;
 
     private final int LAST_SEEN = 0;
     private final int PASSCODE_LOCK = 1;
@@ -58,6 +62,10 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
         securitySectionRow = rowCount++;
         passcodeLock = rowCount++;
         securityDetailRow = rowCount++;
+        testSectionRow = rowCount++;
+        average = rowCount++;
+        minMax = rowCount++;
+        testDetailedRow = rowCount++;
 
         NotificationCenter.getInstance().addObserver(this, NotificationCenter.spaSettings);
 
@@ -120,6 +128,24 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     if (view instanceof TextCheckCell) {
                         ((TextCheckCell) view).setChecked(!passcode_setting);
                     }
+                } else if (i == average) {
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean passcode_setting = preferences.getBoolean("average_policy", false);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean("average_policy", !passcode_setting);
+                    editor.commit();
+                    if (view instanceof TextCheckCell) {
+                        ((TextCheckCell) view).setChecked(!passcode_setting);
+                    }
+                } else if (i == minMax) {
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean passcode_setting = preferences.getBoolean("maximum_minimum_policy", false);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean("maximum_minimum_policy", !passcode_setting);
+                    editor.commit();
+                    if (view instanceof TextCheckCell) {
+                        ((TextCheckCell) view).setChecked(!passcode_setting);
+                    }
                 }
             }
         });
@@ -133,9 +159,6 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     CharSequence[] items = new CharSequence[]{
                             LocaleController.getString("MajorityPreferred", R.string.MajorityPreferred),
                             LocaleController.getString("MinorityPreferred", R.string.MinorityPreferred),
-                            LocaleController.getString("MaximumValue", R.string.MaximumValue),
-                            LocaleController.getString("MinimumValue", R.string.MinimumValue),
-                            LocaleController.getString("Average", R.string.Average)
                     };
                     final int selectItem = i;
                     builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -144,28 +167,46 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                             SharedPreferences.Editor editor = preferences.edit();
                             String selectOne;
-                            if (selectItem == 0) {
-                                selectOne = "LAST_SEEN";
+                            if (selectItem == passcodeLock) {
+                                selectOne = "passcode_lock_setting_policy";
+                            } else if (selectItem == lastSeenRow) {
+                                selectOne = "last_seen_setting_policy";
                             } else {
-                                selectOne = "PASSCODE_LOCK";
+                                return;
                             }
                             if (j == 0) {
                                 editor.putString(selectOne, "MajorityPreferred");
                             } else if (j == 1) {
                                 editor.putString(selectOne, "MinorityPreferred");
-                            } else if (j == 2) {
+                            }
+                            editor.commit();
+                        }
+                    });
+                    showDialog(builder.create());
+                } else if (i == minMax) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
+
+                    CharSequence[] items = new CharSequence[]{
+                            LocaleController.getString("MaximumValue", R.string.MaximumValue),
+                            LocaleController.getString("MinimumValue", R.string.MinimumValue)
+                    };
+                    builder.setItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+                            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = preferences.edit();
+                            String selectOne = "maximum_minimum_policy_policy";
+                            if (j == 0) {
                                 editor.putString(selectOne, "MaximumValue");
-                            } else if (j == 3) {
+                            } else if (j == 1) {
                                 editor.putString(selectOne, "MinimumValue");
-                            } else if (j == 4) {
-                                editor.putString(selectOne, "Average");
                             }
                             editor.commit();
                         }
                     });
                     showDialog(builder.create());
                 } else {
-                    // pass
+                    // do nothing
                 }
 
                 return true;
@@ -207,7 +248,9 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
 
         @Override
         public boolean isEnabled(int i) {
-            return i == privacyDetailRow || i == privacySectionRow || i == lastSeenRow || i == securityDetailRow || i == securitySectionRow || i == passcodeLock;
+            return i == privacyDetailRow || i == privacySectionRow || i == lastSeenRow
+                    || i == securityDetailRow || i == securitySectionRow || i == passcodeLock
+                    || i == testSectionRow || i == average || i == minMax || i == testDetailedRow;
         }
 
         @Override
@@ -243,7 +286,11 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                 if (i == lastSeenRow) {
                     textCell.setTextAndCheck(LocaleController.getString("PrivacyLastSeen", R.string.PrivacyLastSeen), preferences.getBoolean("last_seen_setting", false), false);
                 } else if (i == passcodeLock) {
-                    textCell.setTextAndCheck(LocaleController.getString("Passcode", R.string.Passcode), preferences.getBoolean("passcode_setting", false), false);
+                    textCell.setTextAndCheck(LocaleController.getString("Passcode", R.string.Passcode), preferences.getBoolean("passcode_lock_setting", false), false);
+                } else if (i == average) {
+                    textCell.setTextAndCheck("Average Policy", preferences.getBoolean("average_policy", false), false);
+                } else if (i == minMax) {
+                    textCell.setTextAndCheck("Maximum/Minimum Policy", preferences.getBoolean("maximum_minimum_policy", false), false);
                 }
             } else if (type == 1) {
                 if (view == null) {
@@ -255,6 +302,9 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                 } else if (i == securityDetailRow) {
                     ((TextInfoPrivacyCell) view).setText(LocaleController.getString("SPASecurityDetailHelp", R.string.SPASecurityDetailHelp));
                     view.setBackgroundResource(R.drawable.greydivider_bottom);
+                } else if (i == testDetailedRow) {
+                    ((TextInfoPrivacyCell) view).setText("Test Average policy and Maximum/Minimum policy. Long tap for policy type");
+                    view.setBackgroundResource(R.drawable.greydivider_bottom);
                 }
             } else if (type == 2) {
                 if (view == null) {
@@ -265,6 +315,8 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     ((HeaderCell) view).setText(LocaleController.getString("PrivacyTitle", R.string.PrivacyTitle));
                 } else if (i == securitySectionRow) {
                     ((HeaderCell) view).setText(LocaleController.getString("SecurityTitle", R.string.SecurityTitle));
+                } else if (i == testSectionRow) {
+                    ((HeaderCell) view).setText("Test");
                 }
             }
             return view;
@@ -272,11 +324,14 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
 
         @Override
         public int getItemViewType(int position) {
-            if (position == lastSeenRow || position == passcodeLock) {
+            if (position == lastSeenRow || position == passcodeLock
+                    || position == average || position == minMax) {
                 return 0;
-            } else if (position == privacyDetailRow || position == securityDetailRow) {
+            } else if (position == privacyDetailRow || position == securityDetailRow
+                    || position == testDetailedRow) {
                 return 1;
-            } else if (position == privacySectionRow || position == securitySectionRow)  {
+            } else if (position == privacySectionRow || position == securitySectionRow
+                    || position == testSectionRow)  {
                 return 2;
             }
             return 0;

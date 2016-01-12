@@ -464,7 +464,7 @@ public class LaunchActivity extends Activity implements ActionBarLayout.ActionBa
             ViewServer.get(this).addWindow(this);
         }*/
 
-        SPAPollingUtils.startPollingService(this, 5, SPAKeyManagePollingService.class, SPAKeyManagePollingService.ACTION);
+        SPAPollingUtils.startPollingService(this, 1, SPAKeyManagePollingService.class, SPAKeyManagePollingService.ACTION);
 
         handleIntent(getIntent(), false, savedInstanceState != null, false);
         needLayout();

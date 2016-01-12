@@ -474,10 +474,10 @@
     <string name="SPAResultTitle">SPA Result</string>
     <string name="SPASelectItems">Select SPA Items</string>
     <string name="SPAFriendsList">Friends List</string>
-    <string name="SPASendRequest">Send SPA Requests</string>
+    <string name="SPAReceivedRequest">Received SPA Requests</string>
     <string name="SPAResult">SPA Result</string>
-    <string name="SPAPrivacyDetailHelp">Choose privacy settings being proposed by SPA.</string>
-    <string name="SPASecurityDetailHelp">Choose security settings being proposed by SPA.</string>
+    <string name="SPAPrivacyDetailHelp">Choose privacy settings being proposed by SPA. Long tap for policy type.</string>
+    <string name="SPASecurityDetailHelp">Choose security settings being proposed by SPA. Long tap for policy type.</string>
     <string name="CancelUserText">Tap and hold on user to deselect.</string>
     <string name="NoSelected">No Selected User yet</string>
     <string name="Deselect">Deselect</string>

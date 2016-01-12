@@ -1,10 +1,13 @@
 package org.telegram.messenger;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.telegram.messenger.volley.Request;
 import org.telegram.messenger.volley.RequestQueue;
@@ -16,6 +19,8 @@ import org.telegram.tgnet.TLRPC;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by gzq on 15-11-24.
@@ -47,9 +52,19 @@ public class SPAKeyManagePollingService extends Service {
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            if (response.compareTo("ok") == 0) {
-                            } else {
+                            if (response.compareTo("ok") != 0) {
+                                CharSequence text = "Get an SPA request, please go to SPA setting to response it";
+                                int duration = Toast.LENGTH_SHORT;
+                                Toast toast = Toast.makeText(context, text, duration);
+                                toast.show();
+                                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                SharedPreferences.Editor editor = preferences.edit();
+                                Set<String> set = preferences.getStringSet("spa_request_poll_service", new TreeSet<String>());
+                                set.add(response);
+                                editor.putStringSet("spa_request_poll_service", set);
+                                editor.commit();
                                 Log.v("spa", "get keys: " + response);
+                            } else {
                             }
                         }
                     }, new Response.ErrorListener() {

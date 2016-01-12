@@ -43,7 +43,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
     private int spaRequstRow;
     private int selectPrivacyItemsRow;
     private int friendsListRow;
-    private int sendSpaRequstRow;
+    private int receivedSpaRequstRow;
     private int spaRequstDetailRow;
     private int spaResultRow;
     private int spaResultRow2;
@@ -60,7 +60,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
         spaRequstRow = rowCount++;
         selectPrivacyItemsRow = rowCount++;
         friendsListRow = rowCount++;
-        sendSpaRequstRow = rowCount++;
+        receivedSpaRequstRow = rowCount++;
         spaRequstDetailRow = rowCount++;
         spaResultRow = rowCount++;
         spaResultRow2 = rowCount++;
@@ -154,14 +154,14 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                 } else if (i == friendsListRow) {
                     Log.v("SPA", "friends list");
                     presentFragment(new SPAFriendListActivity());
-                } else if (i == sendSpaRequstRow) {
-                    Log.v("SPA", "send spa request");
+                } else if (i == receivedSpaRequstRow) {
+                    Log.v("SPA", "received spa request");
+                    presentFragment(new SPAReceivedSPARequest());
                 } else if (i == spaResultRow2) {
                     Log.v("SPA", "spa result");
                 }
             }
         });
-
 
         return fragmentView;
     }
@@ -197,7 +197,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
         @Override
         public boolean isEnabled(int i) {
-            return i == spaRequstRow || i == selectPrivacyItemsRow || i == friendsListRow || i == spaRequstDetailRow || i == sendSpaRequstRow || i == spaResultRow || i == spaResultRow2 || i == spaResultDetailRow;
+            return i == spaRequstRow || i == selectPrivacyItemsRow || i == friendsListRow || i == spaRequstDetailRow || i == receivedSpaRequstRow || i == spaResultRow || i == spaResultRow2 || i == spaResultDetailRow;
         }
 
         @Override
@@ -233,8 +233,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     textCell.setText(LocaleController.getString("SPASelectItems", R.string.SPASelectItems), true);
                 } else if (i == friendsListRow) {
                     textCell.setText(LocaleController.getString("SPAFriendsList", R.string.SPAFriendsList), true);
-                } else if (i == sendSpaRequstRow) {
-                    textCell.setText(LocaleController.getString("SPASendRequest", R.string.SPASendRequest), true);
+                } else if (i == receivedSpaRequstRow) {
+                    textCell.setText(LocaleController.getString("SPAReceivedRequest", R.string.SPAReceivedRequest), true);
                 } else if (i == spaResultRow2) {
                     textCell.setText(LocaleController.getString("SPAResult", R.string.SPAResult), true);
                 }
@@ -265,7 +265,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
         @Override
         public int getItemViewType(int position) {
-            if (position == selectPrivacyItemsRow || position == friendsListRow || position == sendSpaRequstRow || position == spaResultRow2) {
+            if (position == selectPrivacyItemsRow || position == friendsListRow || position == receivedSpaRequstRow || position == spaResultRow2) {
                 return 0;
             } else if (position == spaRequstDetailRow || position == spaResultDetailRow) {
                 return 1;

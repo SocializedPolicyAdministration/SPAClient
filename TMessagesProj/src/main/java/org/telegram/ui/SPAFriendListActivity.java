@@ -17,15 +17,19 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.paillier.PaillierPublicKey;
 import org.telegram.PhoneFormat.PhoneFormat;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SPAConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.volley.Request;
 import org.telegram.messenger.volley.RequestQueue;
 import org.telegram.messenger.volley.Response;
@@ -42,6 +46,7 @@ import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Cells.UserCell;
 import org.telegram.ui.Components.LayoutHelper;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -75,7 +80,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
     // in order to get users' phone number for `sendSPARequest`
     private ArrayList<String[]> usersPhoneAndWeight = new ArrayList<>();
 
-    private final int leastNumberForSendSPARequest = 3;
+    private final int leastNumberForSendSPARequest = 1;
 
     private final static int invite_friends = 1;
 
@@ -162,8 +167,13 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                     boolean containsLastSeen = preferences.contains("last_seen_setting");
                     boolean containsPasscodeLock = preferences.contains("passcode_lock_setting");
-                    if (usersSize >= leastNumberForSendSPARequest) {
-                        if (sendSPARequest(containsLastSeen, containsPasscodeLock, context)) {
+                    boolean containsAverage = preferences.contains("average_policy");
+                    boolean containsMinMax = preferences.contains("maximum_minimum_policy");
+                    if (usersSize >= leastNumberForSendSPARequest &&
+                            (containsLastSeen || containsPasscodeLock
+                            || containsAverage || containsMinMax)) {
+                        if (sendSPARequest(containsLastSeen, containsPasscodeLock,
+                                containsAverage, containsMinMax, context)) {
                             // TODO: 15-11-25 Toast success
                         } else {
                             // TODO: 15-11-25 Toast fail
@@ -217,27 +227,61 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
         return fragmentView;
     }
 
-    private boolean sendSPARequest(boolean containsLastSeen, boolean containsPasscodeLock, Context context) {
+    private boolean sendSPARequest(boolean containsLastSeen, boolean containsPasscodeLock,
+                                   boolean containsAverage, boolean containsMinMax, final Context context) {
+        SharedPreferences preferences =
+                ApplicationLoader. applicationContext.
+                        getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+
         // generate json request
         RequestQueue queue = Volley.newRequestQueue(context);
-        final String sendContent;
-        JSONArray settings = new JSONArray();
+        ArrayList<String> settings = new ArrayList<>();
+        ArrayList<String> policies = new ArrayList<>();
+        ArrayList<String> respondentsId = new ArrayList<>();
+        ArrayList<String> respondentsWeight = new ArrayList<>();
+
         if (containsLastSeen) {
-            if (containsPasscodeLock) {
-                settings.put("last_seen_setting");
-                settings.put("passcode_lock_setting");
-            } else {
-                settings.put("last_seen_setting");
-            }
-        } else {
-            if (containsPasscodeLock) {
-                settings.put("passcode_lock_setting");
-            } else {
-                // cannot arrive here, guard by caller
-            }
+            settings.add("last_seen_setting");
+            policies.add(preferences.getString("last_seen_setting_policy", "MajorityPreferred"));
         }
-        JSONArray persons = new JSONArray(usersPhoneAndWeight);
-        sendContent = "[settings:" + settings.toString() + ",persons:" + persons.toString() + "]";
+        if (containsPasscodeLock) {
+            settings.add("passcode_lock_setting");
+            policies.add(preferences.getString("passcode_lock_setting_policy", "MajorityPreferred"));
+        }
+        if (containsAverage) {
+            settings.add("average");
+            policies.add("Average");
+        }
+        if (containsMinMax) {
+            settings.add("maximum_minimum_policy");
+            policies.add(preferences.getString("maximum_minimum_policy_policy", "MaximumValue"));
+        }
+        TLRPC.User user = UserConfig.getCurrentUser();
+        int respondentsSize = usersPhoneAndWeight.size();
+        String paillierN = preferences.getString("paillier_n", "1");
+        String paillierG = preferences.getString("paillier_g", "1");
+        String opeK = preferences.getString("ope_key", "1");
+        PaillierPublicKey pk = new PaillierPublicKey(new BigInteger(paillierN),
+                new BigInteger(paillierG));
+        for (int i = 0; i < respondentsSize; ++i) {
+            String[] cu = usersPhoneAndWeight.get(i);
+            respondentsId.add(cu[0]);
+            BigInteger w = pk.encrypt(new BigInteger(cu[1]));
+            respondentsWeight.add(w.toString());
+        }
+        final JSONObject sendC = new JSONObject();
+        try {
+            sendC.put("settings", new JSONArray(settings));
+            sendC.put("policies", new JSONArray(policies));
+            sendC.put("requester", user.phone);
+            sendC.put("paillier_g", paillierG);
+            sendC.put("paillier_n", paillierN);
+            sendC.put("ope_key", opeK);
+            sendC.put("respondents", new JSONArray(respondentsId));
+            sendC.put("weights", new JSONArray(respondentsWeight));
+        } catch (JSONException e) {}
+        Log.v("spa", sendC.toString());
+
         StringRequest stringRequest = new StringRequest(
                 Request.Method.POST,
                 SPAConfig.sendSPARequest,
@@ -245,21 +289,31 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                     @Override
                     public void onResponse(String response) {
                         if (response.compareTo("ok") == 0) {
-                            // TODO: 15-11-25 Toast for success
+                            CharSequence text = "Send request successfully";
+                            int duration = Toast.LENGTH_SHORT;
+                            Toast toast = Toast.makeText(context, text, duration);
+                            toast.show();
                         } else {
-                            // TODO: 15-11-25 Toast for failure
+                            CharSequence text = "You have send request before";
+                            int duration = Toast.LENGTH_SHORT;
+                            Toast toast = Toast.makeText(context, text, duration);
+                            toast.show();
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        CharSequence text = "Cannot connect server";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
                         Log.v("SPA", "SPA friend list activity cannot connect keymanager!");
                     }
                 }) {
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("content", sendContent);
+                params.put("content", sendC.toString());
                 return params;
             }
         };
@@ -349,7 +403,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                     view = new TextSettingsCell(mContext);
                     view.setBackgroundColor(0xffffffff);
                     TextSettingsCell textCell = (TextSettingsCell) view;
-                    textCell.setText(LocaleController.getString("SPASendRequest", R.string.SPASendRequest), true);
+                    textCell.setText(LocaleController.getString("SPASendRequest", R.string.SPAReceivedRequest), true);
                 }
             }
             return view;
