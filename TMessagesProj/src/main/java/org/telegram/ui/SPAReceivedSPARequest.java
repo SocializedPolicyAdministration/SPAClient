@@ -41,6 +41,7 @@ public class SPAReceivedSPARequest extends BaseFragment implements NotificationC
         super.onFragmentCreate();
 
         SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
         Set<String> set = preferences.getStringSet("spa_request_poll_service", new TreeSet<String>());
         listSize = set.size();
         requests = new String[listSize];
@@ -167,7 +168,7 @@ public class SPAReceivedSPARequest extends BaseFragment implements NotificationC
 
             String[] request = requests[i].split(" ");
             String userId = request[0];
-            textCell.setText("request from: " + userId, true);
+            textCell.setText("Request from: " + userId, true);
 
             return view;
         }

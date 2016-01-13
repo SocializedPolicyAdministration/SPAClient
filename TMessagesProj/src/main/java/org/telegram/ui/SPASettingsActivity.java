@@ -53,6 +53,10 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
     @Override
     public boolean onFragmentCreate() {
         super.onFragmentCreate();
+        // SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+        // SharedPreferences.Editor editor = preferences.edit();
+        // editor.clear();
+        // editor.commit();
 
         // need ContactsController.getInstance().loadPrivacySettings();
 

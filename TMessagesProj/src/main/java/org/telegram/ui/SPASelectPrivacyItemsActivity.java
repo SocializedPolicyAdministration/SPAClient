@@ -45,7 +45,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
     private int rowCount;
     private int testSectionRow;
     private int average;
-    private int minMax;
+    // private int minMax;
     private int testDetailedRow;
 
     private final int LAST_SEEN = 0;
@@ -64,7 +64,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
         securityDetailRow = rowCount++;
         testSectionRow = rowCount++;
         average = rowCount++;
-        minMax = rowCount++;
+        //minMax = rowCount++;
         testDetailedRow = rowCount++;
 
         NotificationCenter.getInstance().addObserver(this, NotificationCenter.spaSettings);
@@ -137,7 +137,8 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     if (view instanceof TextCheckCell) {
                         ((TextCheckCell) view).setChecked(!passcode_setting);
                     }
-                } else if (i == minMax) {
+                }
+                /* else if (i == minMax) {
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
                     boolean passcode_setting = preferences.getBoolean("maximum_minimum_policy", false);
                     SharedPreferences.Editor editor = preferences.edit();
@@ -146,7 +147,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     if (view instanceof TextCheckCell) {
                         ((TextCheckCell) view).setChecked(!passcode_setting);
                     }
-                }
+                }*/
             }
         });
 
@@ -178,28 +179,6 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                                 editor.putString(selectOne, "MajorityPreferred");
                             } else if (j == 1) {
                                 editor.putString(selectOne, "MinorityPreferred");
-                            }
-                            editor.commit();
-                        }
-                    });
-                    showDialog(builder.create());
-                } else if (i == minMax) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-
-                    CharSequence[] items = new CharSequence[]{
-                            LocaleController.getString("MaximumValue", R.string.MaximumValue),
-                            LocaleController.getString("MinimumValue", R.string.MinimumValue)
-                    };
-                    builder.setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int j) {
-                            SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-                            SharedPreferences.Editor editor = preferences.edit();
-                            String selectOne = "maximum_minimum_policy_policy";
-                            if (j == 0) {
-                                editor.putString(selectOne, "MaximumValue");
-                            } else if (j == 1) {
-                                editor.putString(selectOne, "MinimumValue");
                             }
                             editor.commit();
                         }
@@ -250,7 +229,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
         public boolean isEnabled(int i) {
             return i == privacyDetailRow || i == privacySectionRow || i == lastSeenRow
                     || i == securityDetailRow || i == securitySectionRow || i == passcodeLock
-                    || i == testSectionRow || i == average || i == minMax || i == testDetailedRow;
+                    || i == testSectionRow || i == average || i == testDetailedRow;
         }
 
         @Override
@@ -289,9 +268,10 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
                     textCell.setTextAndCheck(LocaleController.getString("Passcode", R.string.Passcode), preferences.getBoolean("passcode_lock_setting", false), false);
                 } else if (i == average) {
                     textCell.setTextAndCheck("Average Policy", preferences.getBoolean("average_policy", false), false);
-                } else if (i == minMax) {
-                    textCell.setTextAndCheck("Maximum/Minimum Policy", preferences.getBoolean("maximum_minimum_policy", false), false);
                 }
+                /* else if (i == minMax) {
+                    textCell.setTextAndCheck("Maximum/Minimum Policy", preferences.getBoolean("maximum_minimum_policy", false), false);
+                }*/
             } else if (type == 1) {
                 if (view == null) {
                     view = new TextInfoPrivacyCell(mContext);
@@ -325,7 +305,7 @@ public class SPASelectPrivacyItemsActivity extends BaseFragment implements Notif
         @Override
         public int getItemViewType(int position) {
             if (position == lastSeenRow || position == passcodeLock
-                    || position == average || position == minMax) {
+                    || position == average) {
                 return 0;
             } else if (position == privacyDetailRow || position == securityDetailRow
                     || position == testDetailedRow) {

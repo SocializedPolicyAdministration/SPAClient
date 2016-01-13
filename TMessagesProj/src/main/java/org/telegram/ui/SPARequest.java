@@ -1,8 +1,10 @@
 package org.telegram.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,16 +15,19 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import org.paillier.PaillierPublicKey;
+import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SPAConfig;
+import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.volley.Request;
 import org.telegram.messenger.volley.RequestQueue;
 import org.telegram.messenger.volley.Response;
 import org.telegram.messenger.volley.VolleyError;
 import org.telegram.messenger.volley.toolbox.StringRequest;
 import org.telegram.messenger.volley.toolbox.Volley;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
@@ -33,6 +38,8 @@ import org.telegram.ui.Components.NumberPicker;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeSet;
+import java.util.prefs.PreferenceChangeEvent;
 
 /**
  * Created by gzq on 16-1-12.
@@ -49,6 +56,7 @@ public class SPARequest extends BaseFragment {
     private String ope_key;
     private String requester;
     private String weight;
+    private String spa_policies;
     private int settingSize;
 
     public SPARequest(Bundle args) {
@@ -66,6 +74,7 @@ public class SPARequest extends BaseFragment {
             paillier_g = request[3];
             ope_key = request[4];
             settings = request[5].split(",");
+            spa_policies = request[6];
             settingSize = settings.length;
             settingsValues = new int[settingSize];
             clickValues = new boolean[settingSize];
@@ -145,7 +154,7 @@ public class SPARequest extends BaseFragment {
                         final NumberPicker numberPicker = new NumberPicker(getParentActivity());
                         numberPicker.setMinValue(10);
                         numberPicker.setMaxValue(30);
-                        numberPicker.setValue(MessagesController.getInstance().fontSize);
+                        numberPicker.setValue(15);
                         builder.setView(numberPicker);
 
                         builder.setNegativeButton(LocaleController.getString("Done", R.string.Done), new DialogInterface.OnClickListener() {
@@ -171,15 +180,15 @@ public class SPARequest extends BaseFragment {
                     for (int j = 0; j < settingSize; ++j) {
                         String setting = settings[j];
                         if (setting.compareTo("last_seen_setting") == 0) {
-                            if (settingsValues[j] == 0x001) {
+                            if (settingsValues[j] == 1) {
                                 values[j] = paillier.encrypt(new BigInteger("0")).toString()
                                         + " " + paillier.encrypt(new BigInteger("0")).toString()
                                         + " " + paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString();
-                            } else if (settingsValues[j] == 0x010) {
+                            } else if (settingsValues[j] == 2) {
                                 values[j] = paillier.encrypt(new BigInteger("0")).toString()
                                         + " " + paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString()
                                         + " " + paillier.encrypt(new BigInteger("0")).toString();
-                            } else if (settingsValues[j] == 0x100) {
+                            } else if (settingsValues[j] == 4) {
                                 values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString()
                                         + " " + paillier.encrypt(new BigInteger("0")).toString()
                                         + " " + paillier.encrypt(new BigInteger("0")).toString();
@@ -193,7 +202,8 @@ public class SPARequest extends BaseFragment {
                                         + " " + paillier.encrypt(new BigInteger("0")).toString();
                             }
                         } else if (setting.compareTo("average") == 0) {
-                            values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("" +settingsValues[j])).toString();
+                            values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("" +settingsValues[j])).toString()
+                                    + " " + weight;
                         } else if (setting.compareTo("maximum_minimum_policy") == 0) {
                             values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j])).toString();
                         }
@@ -211,17 +221,16 @@ public class SPARequest extends BaseFragment {
                             new Response.Listener<String>() {
                                 @Override
                                 public void onResponse(String response) {
-                                    if (response.compareTo("ok") == 0) {
-                                        CharSequence text = "Send request successfully";
-                                        int duration = Toast.LENGTH_SHORT;
-                                        Toast toast = Toast.makeText(context, text, duration);
-                                        toast.show();
-                                    } else {
-                                        CharSequence text = "You have send request before";
-                                        int duration = Toast.LENGTH_SHORT;
-                                        Toast toast = Toast.makeText(context, text, duration);
-                                        toast.show();
-                                    }
+                                    CharSequence text = "Send request successfully";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+
+                                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    // For test
+                                    // editor.putStringSet("spa_request_poll_service", new TreeSet<String>());
+                                    editor.commit();
                                 }
                             },
                             new Response.ErrorListener() {
@@ -236,8 +245,20 @@ public class SPARequest extends BaseFragment {
                             }) {
                         protected Map<String, String> getParams() {
                             Map<String, String> params = new HashMap<>();
+                            TLRPC.User user = UserConfig.getCurrentUser();
+                            String respondent;
+                            if (user != null && user.phone != null && user.phone.length() != 0) {
+                                respondent = user.phone;
+                            } else {
+                                respondent = LocaleController.getString("NumberUnknown", R.string.NumberUnknown);
+                            }
                             params.put("values", req);
                             params.put("requester", requester);
+                            params.put("respondent", respondent);
+                            params.put("spa_policies", spa_policies);
+                            params.put("paillier_n", paillier_n);
+                            params.put("paillier_g", paillier_g);
+                            params.put("settings", request[5]);
                             return params;
                         }
                     };

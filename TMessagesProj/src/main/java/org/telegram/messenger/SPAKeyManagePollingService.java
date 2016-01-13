@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.paillier.PaillierPrivateKey;
 import org.telegram.messenger.volley.Request;
 import org.telegram.messenger.volley.RequestQueue;
 import org.telegram.messenger.volley.Response;
@@ -17,7 +18,9 @@ import org.telegram.messenger.volley.toolbox.StringRequest;
 import org.telegram.messenger.volley.toolbox.Volley;
 import org.telegram.tgnet.TLRPC;
 
+import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -53,17 +56,73 @@ public class SPAKeyManagePollingService extends Service {
                         @Override
                         public void onResponse(String response) {
                             if (response.compareTo("ok") != 0) {
-                                CharSequence text = "Get an SPA request, please go to SPA setting to response it";
-                                int duration = Toast.LENGTH_SHORT;
-                                Toast toast = Toast.makeText(context, text, duration);
-                                toast.show();
-                                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-                                SharedPreferences.Editor editor = preferences.edit();
-                                Set<String> set = preferences.getStringSet("spa_request_poll_service", new TreeSet<String>());
-                                set.add(response);
-                                editor.putStringSet("spa_request_poll_service", set);
-                                editor.commit();
-                                Log.v("spa", "get keys: " + response);
+                                if (response.startsWith("merged:")) {
+                                    CharSequence text = "Get the merged result";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+                                    // remove "merged:"
+                                    String rawResult = response.substring(7);
+                                    String[] results = rawResult.split(",");
+                                    String[] policies =results[0].split(" ");
+                                    String[] settings = results[1].split(" ");
+                                    int valuesSize = results.length;
+                                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    PaillierPrivateKey paillierPrivateKey =
+                                            new PaillierPrivateKey(new BigInteger(preferences.getString("paillier_lambda", "0")),
+                                                    new BigInteger(preferences.getString("paillier_mu", "0")),
+                                                    new BigInteger(preferences.getString("paillier_n", "0")));
+                                    for (int i = 2, j = 0; i < valuesSize; ++i, ++j) {
+                                        if (policies[j].compareTo("MajorityPreferred") == 0
+                                                || policies[j].compareTo("MinorityPreferred") == 0) {
+                                            String[] values = results[i].split(" ");
+                                            if (settings[j].compareTo("last_seen_setting") == 0) {
+                                                // If axay is neg number, the result is n + axay, which is a big number.
+                                                BigInteger a1a2 = paillierPrivateKey.decrypt(new BigInteger(values[0]));
+                                                BigInteger a1a3 = paillierPrivateKey.decrypt(new BigInteger(values[1]));
+                                                BigInteger a2a3 = paillierPrivateKey.decrypt(new BigInteger(values[2]));
+                                                if (a1a2.compareTo(BigInteger.ZERO) <= 0) {
+                                                    if (a2a3.compareTo(BigInteger.ZERO) <= 0) {
+                                                        editor.putInt(settings[j] + "_result", 3);
+                                                    } else {
+                                                        editor.putInt(settings[j] + "_result", 2);
+                                                    }
+                                                } else {
+                                                    if (a1a3.compareTo(BigInteger.ZERO) <= 0) {
+                                                        editor.putInt(settings[j] + "_result", 3);
+                                                    } else {
+                                                        editor.putInt(settings[j] + "_result", 1);
+                                                    }
+                                                }
+                                            } else {
+                                                BigInteger a1a2 = paillierPrivateKey.decrypt(new BigInteger(values[0]));
+                                                if (a1a2.compareTo(BigInteger.ZERO) <= 0) {
+                                                    editor.putInt(settings[j] + "_result", 2);
+                                                } else {
+                                                    editor.putInt(settings[j] + "_result", 1);
+                                                }
+                                            }
+                                        } else {
+                                            String[] values = results[i].split(" ");
+                                            BigInteger value = paillierPrivateKey.decrypt(new BigInteger(values[0]));
+                                            BigInteger weight = paillierPrivateKey.decrypt(new BigInteger(values[1]));
+                                            editor.putInt(settings[j] + "_result", value.divide(weight).intValue());
+                                        }
+                                    }
+                                } else {
+                                    CharSequence text = "Get an SPA request, please go to SPA setting to response it";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+                                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    Set<String> set = preferences.getStringSet("spa_request_poll_service", new TreeSet<String>());
+                                    set.add(response);
+                                    editor.putStringSet("spa_request_poll_service", set);
+                                    editor.commit();
+                                    Log.v("spa", "get keys: " + response);
+                                }
                             } else {
                             }
                         }
