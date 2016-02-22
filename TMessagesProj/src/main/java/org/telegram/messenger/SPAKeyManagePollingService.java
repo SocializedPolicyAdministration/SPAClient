@@ -106,7 +106,7 @@ public class SPAKeyManagePollingService extends Service {
                                         } else {
                                             String[] values = results[i].split(" ");
                                             BigInteger value = paillierPrivateKey.decrypt(new BigInteger(values[0]));
-                                            BigInteger weight = paillierPrivateKey.decrypt(new BigInteger(values[1]));
+                                            BigInteger weight = new BigInteger(values[1]);
                                             editor.putInt(settings[j] + "_result", value.divide(weight).intValue());
                                         }
                                     }

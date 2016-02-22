@@ -118,6 +118,8 @@ public class SPARequest extends BaseFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+                final long startTime = System.currentTimeMillis();
+                for (int num = 0; num < 1; ++num) {
                 if (i < 0 || i > settingSize || getParentActivity() == null) {
                     return;
                 }
@@ -181,28 +183,34 @@ public class SPARequest extends BaseFragment {
                         String setting = settings[j];
                         if (setting.compareTo("last_seen_setting") == 0) {
                             if (settingsValues[j] == 1) {
-                                values[j] = paillier.encrypt(new BigInteger("0")).toString()
-                                        + " " + paillier.encrypt(new BigInteger("0")).toString()
-                                        + " " + paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString();
+                                int weightInt = Integer.parseInt(weight);
+                                values[j] = paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 1 * weightInt)).toString();
                             } else if (settingsValues[j] == 2) {
-                                values[j] = paillier.encrypt(new BigInteger("0")).toString()
-                                        + " " + paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString()
-                                        + " " + paillier.encrypt(new BigInteger("0")).toString();
+                                int weightInt = Integer.parseInt(weight);
+                                values[j] = paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 1 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString();
                             } else if (settingsValues[j] == 4) {
-                                values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString()
-                                        + " " + paillier.encrypt(new BigInteger("0")).toString()
-                                        + " " + paillier.encrypt(new BigInteger("0")).toString();
+                                int weightInt = Integer.parseInt(weight);
+                                values[j] = paillier.encrypt(new BigInteger("" + 1 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString()
+                                        + " " + paillier.encrypt(new BigInteger("" + 0 * weightInt)).toString();
                             }
                         } else if (setting.compareTo("passcode_lock_setting") == 0) {
-                            if (settingsValues[j] == 0x01) {
-                                values[j] = paillier.encrypt(new BigInteger("0")).toString()
-                                        + " " + paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString();
-                            } else if (settingsValues[j] == 0x10) {
-                                values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("1")).toString()
-                                        + " " + paillier.encrypt(new BigInteger("0")).toString();
+                            if (settingsValues[j] == 1) {
+                                int weightInt = Integer.parseInt(weight);
+                                values[j] = paillier.encrypt(new BigInteger("" + 0 * weightInt))
+                                        + " " + paillier.encrypt(new BigInteger("" + 1 * weightInt));
+                            } else if (settingsValues[j] == 2) {
+                                int weightInt = Integer.parseInt(weight);
+                                values[j] = paillier.encrypt(new BigInteger("" + 1 * weightInt))
+                                        + " " + paillier.encrypt(new BigInteger("" + 0 * weightInt));
                             }
                         } else if (setting.compareTo("average") == 0) {
-                            values[j] = paillier.multiple(new BigInteger(weight), new BigInteger("" +settingsValues[j])).toString()
+                            int weightInt = Integer.parseInt(weight);
+                            values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j] * weightInt)).toString()
                                     + " " + weight;
                         } else if (setting.compareTo("maximum_minimum_policy") == 0) {
                             values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j])).toString();
@@ -226,11 +234,11 @@ public class SPARequest extends BaseFragment {
                                     Toast toast = Toast.makeText(context, text, duration);
                                     toast.show();
 
-                                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = preferences.edit();
-                                    // For test
+                                    // SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                    // SharedPreferences.Editor editor = preferences.edit();
+                                    // // For test
                                     // editor.putStringSet("spa_request_poll_service", new TreeSet<String>());
-                                    editor.commit();
+                                    // editor.commit();
                                 }
                             },
                             new Response.ErrorListener() {
@@ -262,9 +270,19 @@ public class SPARequest extends BaseFragment {
                             return params;
                         }
                     };
+
                     RequestQueue queue = Volley.newRequestQueue(context);
                     queue.add(stringRequest);
+
                 }
+                }
+                final long endTime = System.currentTimeMillis();
+                Log.v("spa", "time: " + (endTime - startTime));
+                SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                // For test
+                editor.putStringSet("spa_request_poll_service", new TreeSet<String>());
+                editor.commit();
             }
         });
 

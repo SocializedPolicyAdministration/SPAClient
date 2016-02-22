@@ -166,9 +166,9 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                     // pass
                 } else if (i > usersSize) {
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-                    boolean containsLastSeen = preferences.contains("last_seen_setting");
-                    boolean containsPasscodeLock = preferences.contains("passcode_lock_setting");
-                    boolean containsAverage = preferences.contains("average_policy");
+                    boolean containsLastSeen = preferences.getBoolean("last_seen_setting", false);
+                    boolean containsPasscodeLock = preferences.getBoolean("passcode_lock_setting", false);
+                    boolean containsAverage = preferences.getBoolean("average_policy", false);
                     // boolean containsMinMax = preferences.contains("maximum_minimum_policy");
                     if (usersSize >= leastNumberForSendSPARequest &&
                             (containsLastSeen || containsPasscodeLock
@@ -263,12 +263,10 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
         String opeK = preferences.getString("ope_key", "1");
         PaillierPublicKey pk = new PaillierPublicKey(new BigInteger(paillierN),
                 new BigInteger(paillierG));
-        PaillierPrivateKey pp = new PaillierPrivateKey(new BigInteger(paillierL), new BigInteger(paillierM), new BigInteger(paillierN));
         for (int i = 0; i < respondentsSize; ++i) {
             String[] cu = usersPhoneAndWeight.get(i);
             respondentsId.add(cu[0]);
-            BigInteger w = pk.encrypt(new BigInteger(cu[1]));
-            respondentsWeight.add(w.toString());
+            respondentsWeight.add(cu[1]);
         }
         final JSONObject sendC = new JSONObject();
         try {
