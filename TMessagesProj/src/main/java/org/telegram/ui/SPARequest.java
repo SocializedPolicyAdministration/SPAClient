@@ -179,6 +179,9 @@ public class SPARequest extends BaseFragment {
                             new BigInteger(paillier_g));
                     final String req;
 
+
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean passcode_setting = preferences.getBoolean("average_policy", false);
                     for (int j = 0; j < settingSize; ++j) {
                         String setting = settings[j];
                         if (setting.compareTo("last_seen_setting") == 0) {
@@ -210,8 +213,13 @@ public class SPARequest extends BaseFragment {
                             }
                         } else if (setting.compareTo("average") == 0) {
                             int weightInt = Integer.parseInt(weight);
-                            values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j] * weightInt)).toString()
-                                    + " " + weight;
+                            if (passcode_setting) {
+                                values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j])).toString()
+                                        + " " + 1;
+                            } else {
+                                values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j] * weightInt)).toString()
+                                        + " " + weight;
+                            }
                         } else if (setting.compareTo("maximum_minimum_policy") == 0) {
                             values[j] = paillier.encrypt(new BigInteger("" + settingsValues[j])).toString();
                         }

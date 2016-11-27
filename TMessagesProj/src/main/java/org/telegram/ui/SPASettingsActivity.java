@@ -26,6 +26,7 @@ import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.Adapters.BaseFragmentAdapter;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Cells.TextSettingsCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -48,6 +49,9 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
     private int spaResultRow;
     private int spaResultRow2;
     private int spaResultDetailRow;
+    private int spaCloseAverageComposite;
+    private int spaCloseAverageComposite2;
+    private int spaCloseAverageCompositeDetailRow;
     private int rowCount;
 
     @Override
@@ -69,6 +73,10 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
         spaResultRow = rowCount++;
         spaResultRow2 = rowCount++;
         spaResultDetailRow = rowCount++;
+        spaCloseAverageComposite = rowCount++;
+        spaCloseAverageComposite2 = rowCount++;
+        spaCloseAverageCompositeDetailRow = rowCount++;
+
 
 
         NotificationCenter.getInstance().addObserver(this, NotificationCenter.spaSettings);
@@ -163,6 +171,16 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     presentFragment(new SPAReceivedSPARequest());
                 } else if (i == spaResultRow2) {
                     Log.v("SPA", "spa result");
+                } else if (i == spaCloseAverageComposite2) {
+                    Log.v("SPA", "spa disable average policy");
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                    boolean passcode_setting = preferences.getBoolean("disable_average_policy", false);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putBoolean("disable_average_policy", !passcode_setting);
+                    editor.commit();
+                    if (view instanceof TextCheckCell) {
+                        ((TextCheckCell) view).setChecked(!passcode_setting);
+                    }
                 }
             }
         });
@@ -201,7 +219,10 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
         @Override
         public boolean isEnabled(int i) {
-            return i == spaRequstRow || i == selectPrivacyItemsRow || i == friendsListRow || i == spaRequstDetailRow || i == receivedSpaRequstRow || i == spaResultRow || i == spaResultRow2 || i == spaResultDetailRow;
+            return i == spaRequstRow || i == selectPrivacyItemsRow || i == friendsListRow
+                    || i == spaRequstDetailRow || i == receivedSpaRequstRow || i == spaResultRow
+                    || i == spaResultRow2 || i == spaResultDetailRow || i == spaCloseAverageComposite
+                    || i == spaCloseAverageCompositeDetailRow || i == spaCloseAverageComposite2;
         }
 
         @Override
@@ -241,6 +262,13 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     textCell.setText(LocaleController.getString("SPAReceivedRequest", R.string.SPAReceivedRequest), true);
                 } else if (i == spaResultRow2) {
                     textCell.setText(LocaleController.getString("SPAResult", R.string.SPAResult), true);
+                } else if (i == spaCloseAverageComposite2) {
+                    view = new TextCheckCell(mContext);
+                    view.setBackgroundColor(0xffffffff);
+                    TextCheckCell textCell2 = (TextCheckCell) view;
+                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
+                    textCell2.setTextAndCheck("Disable Average Policy", preferences.getBoolean("disable_average_policy", false), false);
+                    return textCell2;
                 }
             } else if (type == 1) {
                 if (view == null) {
@@ -252,6 +280,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                 } else if (i == spaResultDetailRow) {
                     ((TextInfoPrivacyCell) view).setText(LocaleController.getString("SPASendingHelp", R.string.SPASendingHelp));
                     view.setBackgroundResource(R.drawable.greydivider_bottom);
+                } else if (i == spaCloseAverageCompositeDetailRow) {
+                    ((TextInfoPrivacyCell) view).setText(LocaleController.getString("SPADisableCompositeHelp", R.string.SPACloseHelp));
                 }
             } else if (type == 2) {
                 if (view == null) {
@@ -262,6 +292,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     ((HeaderCell) view).setText(LocaleController.getString("SPARequestTitle", R.string.SPARequestTitle));
                 } else if (i == spaResultRow) {
                     ((HeaderCell) view).setText(LocaleController.getString("SPAResultTitle", R.string.SPAResultTitle));
+                } else if (i == spaCloseAverageComposite) {
+                    ((HeaderCell) view).setText(LocaleController.getString("SPACloseTitle", R.string.SPACloseTitle));
                 }
             }
             return view;
@@ -269,11 +301,13 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
 
         @Override
         public int getItemViewType(int position) {
-            if (position == selectPrivacyItemsRow || position == friendsListRow || position == receivedSpaRequstRow || position == spaResultRow2) {
+            if (position == selectPrivacyItemsRow || position == friendsListRow
+                    || position == receivedSpaRequstRow || position == spaResultRow2
+                    || position == spaCloseAverageComposite2) {
                 return 0;
-            } else if (position == spaRequstDetailRow || position == spaResultDetailRow) {
+            } else if (position == spaRequstDetailRow || position == spaResultDetailRow || position == spaCloseAverageCompositeDetailRow) {
                 return 1;
-            } else if (position == spaRequstRow || position == spaResultRow)  {
+            } else if (position == spaRequstRow || position == spaResultRow || position == spaCloseAverageComposite)  {
                 return 2;
             }
             return 0;

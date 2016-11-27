@@ -196,7 +196,10 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                 final int selectedItem = i;
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity());
-                CharSequence[] items = new CharSequence[]{"UnProfessional user", "Professional user", LocaleController.getString("Deselect", R.string.Deselect)};
+                CharSequence[] items = new CharSequence[]{"UnProfessional user"
+                        , "Professional user"
+                        , "No weight"
+                        , LocaleController.getString("Deselect", R.string.Deselect)};
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -205,6 +208,8 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
                         } else if (i == 1) {
                             usersId.get(selectedItem).weight = 2;
                         } else if (i == 2) {
+                            usersId.get(selectedItem).weight = 0;
+                        } else if (i == 3) {
                             usersId.remove(selectedItem);
                             listViewAdapter.notifyDataSetChanged();
                         }

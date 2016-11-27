@@ -472,6 +472,8 @@
     <string name="SPAResultHelp">Show the state of SPA process. When receive SPA result, you can apply the result manually or allow SPA apply the result automatically.</string>
     <string name="SPARequestTitle">SPA Request</string>
     <string name="SPAResultTitle">SPA Result</string>
+    <string name="SPACloseTitle">Disable Composite SPA</string>
+    <string name="SPACloseHelp">Disable Composite SPA when friends send an Average policy</string>
     <string name="SPASelectItems">Select SPA Items</string>
     <string name="SPAFriendsList">Friends List</string>
     <string name="SPAReceivedRequest">Received SPA Requests</string>
