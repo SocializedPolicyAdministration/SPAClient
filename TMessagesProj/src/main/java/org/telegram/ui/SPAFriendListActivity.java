@@ -51,6 +51,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by zqguo on 2015/10/28.
@@ -235,7 +237,7 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
 
     private boolean sendSPARequest(boolean containsLastSeen, boolean containsPasscodeLock,
                                    boolean containsAverage, final Context context) {
-        SharedPreferences preferences =
+        final SharedPreferences preferences =
                 ApplicationLoader. applicationContext.
                         getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
 
@@ -268,11 +270,20 @@ public class SPAFriendListActivity extends BaseFragment implements ContactsActiv
         String opeK = preferences.getString("ope_key", "1");
         PaillierPublicKey pk = new PaillierPublicKey(new BigInteger(paillierN),
                 new BigInteger(paillierG));
+        StringBuffer users = new StringBuffer();
         for (int i = 0; i < respondentsSize; ++i) {
             String[] cu = usersPhoneAndWeight.get(i);
             respondentsId.add(cu[0]);
+            users.append(" " + cu[0]);
             respondentsWeight.add(cu[1]);
         }
+        if (users.length() > 0) {
+            users.deleteCharAt(0);
+        }
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("spa_respondents", users.toString());
+        editor.commit();
+
         final JSONObject sendC = new JSONObject();
         try {
             sendC.put("settings", new JSONArray(settings));

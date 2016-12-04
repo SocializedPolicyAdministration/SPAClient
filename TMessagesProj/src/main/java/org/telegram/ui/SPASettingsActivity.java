@@ -102,7 +102,8 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                         @Override
                         public void onResponse(String response) {
                             SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
-                            if (response.charAt(0) != '0' && response.charAt(0) != '1') {
+                            char firstChar = response.charAt(0);
+                            if (firstChar < '0' || firstChar > '9') {
                                 Log.v("SPA", response);
                             } else {
                                 String keys[] = response.split(" ");
@@ -171,6 +172,7 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     presentFragment(new SPAReceivedSPARequest());
                 } else if (i == spaResultRow2) {
                     Log.v("SPA", "spa result");
+                    presentFragment(new SPAResultActivity());
                 } else if (i == spaCloseAverageComposite2) {
                     Log.v("SPA", "spa disable average policy");
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
@@ -253,22 +255,20 @@ public class SPASettingsActivity extends BaseFragment implements NotificationCen
                     view = new TextSettingsCell(mContext);
                     view.setBackgroundColor(0xffffffff);
                 }
-                TextSettingsCell textCell = (TextSettingsCell) view;
                 if (i == selectPrivacyItemsRow) {
-                    textCell.setText(LocaleController.getString("SPASelectItems", R.string.SPASelectItems), true);
+                    ((TextSettingsCell) view).setText(LocaleController.getString("SPASelectItems", R.string.SPASelectItems), true);
                 } else if (i == friendsListRow) {
-                    textCell.setText(LocaleController.getString("SPAFriendsList", R.string.SPAFriendsList), true);
+                    ((TextSettingsCell) view).setText(LocaleController.getString("SPAFriendsList", R.string.SPAFriendsList), true);
                 } else if (i == receivedSpaRequstRow) {
-                    textCell.setText(LocaleController.getString("SPAReceivedRequest", R.string.SPAReceivedRequest), true);
+                    ((TextSettingsCell) view).setText(LocaleController.getString("SPAReceivedRequest", R.string.SPAReceivedRequest), true);
                 } else if (i == spaResultRow2) {
-                    textCell.setText(LocaleController.getString("SPAResult", R.string.SPAResult), true);
+                    ((TextSettingsCell) view).setText(LocaleController.getString("SPAResult", R.string.SPAResult), true);
                 } else if (i == spaCloseAverageComposite2) {
                     view = new TextCheckCell(mContext);
                     view.setBackgroundColor(0xffffffff);
-                    TextCheckCell textCell2 = (TextCheckCell) view;
+                    TextCheckCell textCell = (TextCheckCell) view;
                     SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences("spaconfig", Activity.MODE_PRIVATE);
-                    textCell2.setTextAndCheck("Disable Average Policy", preferences.getBoolean("disable_average_policy", false), false);
-                    return textCell2;
+                    textCell.setTextAndCheck("Disable Average Policy", preferences.getBoolean("disable_average_policy", false), false);
                 }
             } else if (type == 1) {
                 if (view == null) {

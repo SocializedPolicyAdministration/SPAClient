@@ -110,6 +110,24 @@ public class SPAKeyManagePollingService extends Service {
                                             editor.putInt(settings[j] + "_result", value.divide(weight).intValue());
                                         }
                                     }
+                                    editor.commit();
+                                } else if (response.startsWith("result:")) {
+                                    CharSequence text = "Get an SPA result, please go to SPA setting to assess it";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
+                                    SharedPreferences preferences = ApplicationLoader.applicationContext.getSharedPreferences(SPAConfig.SPA_PREFERENCE, Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = preferences.edit();
+                                    editor.putString("spa_result_assessment", response.substring(7));
+                                    editor.commit();
+                                } else if (response.startsWith("assess:")) {
+                                    String[] assessment = response.substring(7).split(",");
+                                    CharSequence text = assessment[0] + " friends think result is suitable.\n"
+                                            + assessment[1] + " friends think result is malicious.\n"
+                                            + assessment[2] + " friends have no iead.";
+                                    int duration = Toast.LENGTH_SHORT;
+                                    Toast toast = Toast.makeText(context, text, duration);
+                                    toast.show();
                                 } else {
                                     CharSequence text = "Get an SPA request, please go to SPA setting to response it";
                                     int duration = Toast.LENGTH_SHORT;
